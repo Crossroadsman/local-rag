@@ -1,8 +1,12 @@
 import os
+
+# filetype handlers
 import pdfplumber
 import docx  # `python-docx` when installing from conda
 import openpyxl
 import markdown2
+
+from bs4 import BeautifulSoup
 
 # choose whichever file handling library you want for a particular filetype
 # import it above then define a handler function below
@@ -14,7 +18,14 @@ def extract_txt(file_path):
 
 def extract_markdown(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
-        return markdown2.markdown(file.read())
+        # Convert markdown to HTML
+        html_content = markdown2.markdown(file.read())
+
+        # Use BS to parse and remove HTML tags
+        bs = BeautifulSoup(html_content, 'html.parser')
+        plain_text = bs.get_text()
+
+        return plain_text
 
 def extract_pdf(file_path):
     with pdfplumber.open(file_path) as file:
