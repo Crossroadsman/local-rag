@@ -18,7 +18,7 @@ def extract_markdown(file_path):
 
 def extract_pdf(file_path):
     with pdfplumber.open(file_path) as file:
-        return "\n".join(page.extract_text() for page in pdf.pages)
+        return "\n".join(page.extract_text() for page in file.pages)
 
 def extract_docx(file_path):
     file = docx.Document(file_path)
@@ -36,7 +36,7 @@ def extract_xlsx(file_path):
 # Mapping table
 # associate each supported file extension with a handler function
 file_type_handlers = {
-    ".txt": extract_text,
+    ".txt": extract_txt,
     ".md": extract_markdown,
     ".pdf": extract_pdf,
     ".docx": extract_docx,
