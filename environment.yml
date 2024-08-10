@@ -6,6 +6,7 @@ dependencies:
   - _libgcc_mutex=0.1
   - _openmp_mutex=4.5
   - atk-1.0=2.36.0
+  - beautifulsoup4=4.12.3
   - bzip2=1.0.8
   - ca-certificates=2024.7.4
   - cairo=1.16.0
@@ -88,6 +89,7 @@ dependencies:
   - python_abi=3.11
   - readline=8.2
   - setuptools=72.1.0
+  - soupsieve=2.5
   - sqlite=3.45.3
   - tk=8.6.14
   - typing_extensions=4.12.2
