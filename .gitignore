@@ -1,0 +1,26 @@
+# See: https://git-scm.com/docs/gitignore for full syntax
+
+# MacOS
+# -----
+# (see: https://zellwk.com/blog/gitignore/
+.DS_Store
+
+# Byte-compiled / optimized / DLL files
+# -------------------------------------
+# if a pattern ends with a slash, the slash is removed (for the purposes
+# of the rest of the description) but only matches a directory (and all
+# paths underneath it).
+__pycache__/
+
+# `*` matches anything except `/` (note `**` is a different, special
+# pattern).
+# `[ ]` matches any single character inside the brackets
+*.py[cod]
+
+# git's matching is NOT regex, so `$` has no special meaning
+*$py.class
+
+# Environments
+# ------------
+venv/
+
