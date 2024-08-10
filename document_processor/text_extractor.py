@@ -1,6 +1,6 @@
 import os
 import pdfplumber
-import docx
+import docx  # `python-docx` when installing from conda
 import openpyxl
 import markdown2
 
