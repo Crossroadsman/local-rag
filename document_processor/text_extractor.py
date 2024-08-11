@@ -1,12 +1,13 @@
 import os
 
 # filetype handlers
-import pdfplumber
+import fitz # `pymupdf` when installing from conda
 import docx  # `python-docx` when installing from conda
 import openpyxl
 import markdown2
 
 from bs4 import BeautifulSoup
+import re
 
 # choose whichever file handling library you want for a particular filetype
 # import it above then define a handler function below
@@ -28,8 +29,14 @@ def extract_markdown(file_path):
         return plain_text
 
 def extract_pdf(file_path):
-    with pdfplumber.open(file_path) as file:
-        return "\n".join(page.extract_text() for page in file.pages)
+    file = fitz.open(file_path)
+    text = ""
+    for page in file:
+        text += page.get_text("text")
+
+    text = clean_text(text)
+
+    return text
 
 def extract_docx(file_path):
     file = docx.Document(file_path)
@@ -54,6 +61,17 @@ file_type_handlers = {
     ".xlsx": extract_xlsx
 }
 
+# Helper functions
+def clean_text(text):
+    """This is especially useful for PDFs which can have a lot of non-human-readable text"""
+
+    # Remove non-printable characters
+    text = re.sub(r'[^\x20-\x7E\n]', '', text)
+
+    # Remove excessive whitespace or other artifacts
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    return text
 
 # Master function
 def extract_content(file_path):
