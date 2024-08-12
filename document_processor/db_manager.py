@@ -12,8 +12,12 @@ def initialize_chroma(db_directory):
     storage file format optimized for big data processing. It's particularly
     well-suited for storing large datasets that need to be queried efficiently
     """
-    client = chromadb.Client(Settings(chroma_db_impl="duckdb+parquet",
-                                      persist_directory=db_directory))
+    #client = chromadb.Client(Settings(chroma_db_impl="duckdb+parquet",
+    #                                  persist_directory=db_directory))
+
+    # Chroma's syntax has changed and the docs do not currently specify how
+    # or whether you can choose a db implementation
+    client = chromadb.PersistentClient(path=db_directory)
     return client
 
 
@@ -52,7 +56,7 @@ def add_records_to_collection(collection, records):
 
     # A unique ID is required for each vector
     #ids = [f"id_{i}" for i in range(len(vectors))]
-
+    '''
     for i, record in enumerate(records):
         # add some testing here to ensure, e.g., len(record["chunks"]) == len(record["vectors"])
         for j, (chunk, vector) in enumerate(zip(record["chunks"], record["vectors"])):
@@ -63,7 +67,47 @@ def add_records_to_collection(collection, records):
                 "chunk_text": chunk["text"],
                 "chunk_position": chunk["position"]
             }])
+    '''
 
+    # if the above doesn't work then try the following instead
+    '''
+    for i, record in enumerate(records):
+        # add some testing here to ensure, e.g., len(record["chunks"]) == len(record["vectors"])
+        for j, (chunk, vector) in enumerate(zip(record["chunks"], record["vectors"])):
+            metadata = {
+                "filename": record["file_path"],
+                "chunk_index": j,
+                "chunk_text": chunk["text"],
+                "chunk_position": chunk["position"]
+            }
+            collection.add(
+                embeddings=[vector],
+                metadata=[metadata],
+                ids=[f"{i}-{j}"]
+            )
+    '''
+    # or
+    embeddings = []
+    metadatas = []
+    ids = []
+    for i, record in enumerate(records):
+        # add some testing...
+        for j, (chunk, vector) in enumerate(zip(record["chunks"], record["vectors"])):
+            chunk_id = f"{i}-{j}"
+            metadata = {
+                "filename": record["file_path"],
+                "chunk_index": j,
+                "chunk_text": chunk["text"],
+                "chunk_position": chunk["position"]
+            }
+            embeddings.append(vector)
+            metadatas.append(metadata)
+            ids.append(chunk_id)
+    collection.add(
+        embeddings=embeddings,
+        metadata=metadata,
+        ids=ids
+    )
 
 def persist_chroma(client):
     client.persist()
