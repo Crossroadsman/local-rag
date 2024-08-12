@@ -1,38 +1,82 @@
-import os
 import chromadb
 from chromadb.config import Settings
 
 
-def initialize_chroma():
-    """Initialize the Chroma client with Faiss GPU backend for vector storage
-    and search. Returns the client instance.
-    """
-    db_directory = os.path.join(os.getcwd(), "chroma_db")
+def initialize_chroma(db_directory):
+    """Initialize the Chroma client.
 
+    Using combined duckdb and parquet. duckdb is an in-process SQL OLAP
+    DBMS. It's designed for analytical queries rather than transactional
+    workloads, meaning it's optimized for operations like aggregations,
+    joins, and complex queries over large datasets. parquet is a columnar
+    storage file format optimized for big data processing. It's particularly
+    well-suited for storing large datasets that need to be queried efficiently
+    """
+    #client = chromadb.Client(Settings(chroma_db_impl="duckdb+parquet",
+    #                                  persist_directory=db_directory))
+
+    # Chroma's syntax has changed and the docs do not currently specify how
+    # or whether you can choose a db implementation
     client = chromadb.PersistentClient(path=db_directory)
     return client
 
 
-def create_collection(client, name="my_collection"):
+def get_or_create_collection(client, collection_name="documents"):
     """Creates a new collection in Chroma. Returns the collection instance.
     """
-    collection = client.create_collection(name)
+    collection = client.get_or_create_collection(name=collection_name)
     return collection
 
 
-def add_vectors_to_collection(collection, vectors, metadata):
-    """Adds vectors to the specified collection in Chroma along with their
-    metadata.
+def add_records_to_collection(collection, records):
+    """Adds records to the specified collection in Chroma where the records
+    argument takes the following data structure:
+
+    [
+        {
+            "file_path": os.path.join(directory, "file1.pdf"),
+            "chunks": [
+                {"text": "chunk1_file1", "position": 0},
+                {"text": "chunk2_file1", "position": 1024},
+            ],
+            "vectors": [vector1_file1, vector2_file1]
+        },
+            "file_path": os.path.join(directory, "file2.docx"),
+            "chunks": [
+                {"text": "chunk1_file2", "position": 0},
+                {"text": "chunk2_file2", "position": 1024},
+                {"text": "chunk3_file2", "position": 2048}
+            ],
+            "vectors": [vector1_file2, vector2_file2, vector3_file2]
+        {
+        }, etc
+    ]
     
-    Args:
-    - `collection`: The Chroma collection instance
-    - `vectors`: a list of vector embeddings to be added
-    - `metadata`: a list of metadata dictionaries corresponding to each vector
     """
 
-    # A unique ID is required for each vector
-    ids = [f"id_{i}" for i in range(len(vectors))]
-    collection.add(ids=ids, embeddings=vectors, metadatas=metadata)
+    embeddings = []
+    metadatas = []
+    ids = []
+    for i, record in enumerate(records):
+        for j, (chunk, vector) in enumerate(zip(record["chunks"], record["vectors"])):
+            chunk_id = f"{i}-{j}"
+            metadata = {
+                "filename": record["file_path"],
+                "chunk_index": j,
+                "chunk_text": chunk["text"],
+                "chunk_position": chunk["position"]
+            }
+            embeddings.append(vector.tolist())  # convert numpy ndarray to python list
+            metadatas.append(metadata)
+            ids.append(chunk_id)
+    collection.add(
+        embeddings=embeddings,
+        metadatas=metadatas,
+        ids=ids
+    )
+
+def persist_chroma(client):
+    client.persist()
 
 
 def search_vectors(collection, query_vector, top_k=5):
@@ -53,20 +97,3 @@ def search_vectors(collection, query_vector, top_k=5):
     )
     return results
 
-
-if __name__ == "__main__":
-    # Standalone example
-    client = initialize_chroma()
-    collection = create_collection(client)
-
-    # Example vectors and metadata
-    vectors = [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
-    metadata = [{"id": "vector1"}, {"id": "vector2"}]
-
-    add_vectors_to_collection(collection, vectors, metadata)
-
-    # Perform a search
-    query_vector = [0.1, 0.2, 0.6]
-    results = search_vectors(collection, query_vector)
-
-    print("Search results: ", results)

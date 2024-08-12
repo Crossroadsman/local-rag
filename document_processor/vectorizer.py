@@ -28,10 +28,16 @@ def chunk_text(text, chunk_size=1024, overlap=128):
     complexity if later deduplication is required."""
     words = text.split()
     chunks = []
-    for i in range(0, len(words), chunk_size - overlap):
+    position = 0
+    chunk_advance = chunk_size - overlap
+
+    for i in range(0, len(words), chunk_advance):
         chunk = " ".join(words[i:i + chunk_size])
-        chunks.append(chunk)
+        chunk_dict = {"text": chunk, "position": position}
+        chunks.append(chunk_dict)
+        position += chunk_advance
+
     return chunks
 
 def vectorize_text(chunks):
-    return [model.encode(chunk) for chunk in chunks]
+    return [model.encode(chunk["text"]) for chunk in chunks]
