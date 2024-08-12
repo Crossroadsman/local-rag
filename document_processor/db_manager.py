@@ -54,44 +54,10 @@ def add_records_to_collection(collection, records):
     
     """
 
-    # A unique ID is required for each vector
-    #ids = [f"id_{i}" for i in range(len(vectors))]
-    '''
-    for i, record in enumerate(records):
-        # add some testing here to ensure, e.g., len(record["chunks"]) == len(record["vectors"])
-        for j, (chunk, vector) in enumerate(zip(record["chunks"], record["vectors"])):
-            record_id = f"{i}-{j}"
-            collection.add([{"id": record_id, "content": vector}], metadata=[{
-                "filename": record["file_path"],
-                "chunk_index": j,
-                "chunk_text": chunk["text"],
-                "chunk_position": chunk["position"]
-            }])
-    '''
-
-    # if the above doesn't work then try the following instead
-    '''
-    for i, record in enumerate(records):
-        # add some testing here to ensure, e.g., len(record["chunks"]) == len(record["vectors"])
-        for j, (chunk, vector) in enumerate(zip(record["chunks"], record["vectors"])):
-            metadata = {
-                "filename": record["file_path"],
-                "chunk_index": j,
-                "chunk_text": chunk["text"],
-                "chunk_position": chunk["position"]
-            }
-            collection.add(
-                embeddings=[vector],
-                metadata=[metadata],
-                ids=[f"{i}-{j}"]
-            )
-    '''
-    # or
     embeddings = []
     metadatas = []
     ids = []
     for i, record in enumerate(records):
-        # add some testing...
         for j, (chunk, vector) in enumerate(zip(record["chunks"], record["vectors"])):
             chunk_id = f"{i}-{j}"
             metadata = {
@@ -100,12 +66,12 @@ def add_records_to_collection(collection, records):
                 "chunk_text": chunk["text"],
                 "chunk_position": chunk["position"]
             }
-            embeddings.append(vector)
+            embeddings.append(vector.tolist())  # convert numpy ndarray to python list
             metadatas.append(metadata)
             ids.append(chunk_id)
     collection.add(
         embeddings=embeddings,
-        metadata=metadata,
+        metadatas=metadatas,
         ids=ids
     )
 
