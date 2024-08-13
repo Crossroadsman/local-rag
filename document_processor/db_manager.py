@@ -97,3 +97,26 @@ def search_vectors(collection, query_vector, top_k=5):
     )
     return results
 
+
+def nice_results(results):
+    """flattens and reformats the search results
+    - flattens in the sense that the results dict has nested lists, the outer
+      list represents each embedding, the inner list represents each result
+      for that embedding. Usually we only have one embedding, so we just want
+      the results
+    """
+    nice_results = []
+    for i in range(len(results["ids"])):
+        for j in range(len(results["ids"][i])):
+            doc_id, chunk_id = results["ids"][i][j].split('-')
+            distance = results["distances"][i][j]
+            metadata = results["metadatas"][i][j]
+            dict = {
+                "doc_id": doc_id,
+                "chunk_id": chunk_id,
+                "distance": distance,
+                "text": metadata["chunk_text"],
+                "position": metadata["chunk_position"]
+            }
+            nice_results.append(dict)
+    return nice_results
