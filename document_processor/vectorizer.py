@@ -39,5 +39,14 @@ def chunk_text(text, chunk_size=1024, overlap=128):
 
     return chunks
 
-def vectorize_text(chunks):
+
+def vectorize_text(text):
+    """Use this for just encoding a snippet of text, e.g., a query
+    """
+    return model.encode(text)
+
+
+def vectorize_chunks(chunks):
+    """use this for encoding a chunks dict
+    """
     return [model.encode(chunk["text"]) for chunk in chunks]
