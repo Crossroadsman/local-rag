@@ -1,7 +1,7 @@
 # This will be the document processor app
 from file_handler import list_files
 from text_extractor import extract_content
-from vectorizer import chunk_text, vectorize_text
+from vectorizer import chunk_text, vectorize_chunks
 
 
 directory = './test' # this will be an argument to the file, and we'll use os to process paths
